@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Ergo Keyboard Layout Maker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<header class="topbar">
+  <h1>Keyboard Layout Maker</h1>
+
+  <div class="file-upload">
+    <label class="file-btn" title="Import DXF file">
+      Import DXF
+      <input type="file" id="fileInput" accept=".dxf,.yaml,.yml" />
+    </label>
+  </div>
+
+  <div class="toolbar">
+    <select id="layerSelect">
+      <option value="base">Base Layer</option>
+    </select>
+
+    <button id="addLayerBtn">Add Layer</button>
+
+    <div class="toolbar-sep"></div>
+
+    <button id="saveLayoutBtn" title="Save layout as JSON">Save</button>
+    <button id="loadLayoutBtn" title="Load a saved layout JSON">Load</button>
+    <input type="file" id="loadLayoutInput" accept=".json" style="display:none" />
+
+    <div class="toolbar-sep"></div>
+
+    <button id="exportPngBtn">Export PNG</button>
+  </div>
+</header>
+
+<main class="main">
+
+  <!-- Canvas Area -->
+  <section class="canvas-container">
+    <div class="canvas-hint">
+      Click to select · <kbd>Shift</kbd>+click or drag to multi-select · Double-click to edit label · <kbd>Esc</kbd> to deselect
+    </div>
+    <svg id="keyboardCanvas"></svg>
+  </section>
+
+  <!-- Right Panel -->
+  <aside class="panel">
+    <div class="panel-header">
+      <h2>Key Properties</h2>
+      <span id="selectionBadge" class="badge badge-none">No selection</span>
+    </div>
+
+    <!-- Key label — hidden when multiple keys selected -->
+    <label id="keyTextLabel">
+      Key Label
+      <input type="text" id="keyText" placeholder="A" />
+    </label>
+
+    <label>
+      Background Color
+      <input type="color" id="keyColor" value="#ffffff" />
+    </label>
+
+    <label>
+      Text Color
+      <input type="color" id="keyTextColor" value="#000000" />
+    </label>
+
+    <label>
+      Font Size
+      <input type="text" id="fontSize" placeholder="18" />
+    </label>
+
+    <button id="applyChanges">Apply to Selected</button>
+
+    <hr />
+
+    <h3>View</h3>
+    <button id="resetView">Reset View</button>
+  </aside>
+
+</main>
+
+<script src="https://unpkg.com/dxf-parser/dist/dxf-parser.js"></script>
+<script src="parser.js"></script>
+<script src="render.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
