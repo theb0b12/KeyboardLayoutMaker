@@ -1,16 +1,72 @@
 <!DOCTYPE html>
+<!--
+  index.html
+  ==========
+  The single HTML page for the Keyboard Layout Maker.
+
+  This file only defines structure and loads resources.
+  All behaviour lives in the JS files loaded at the bottom.
+  All visual styling lives in style.css.
+
+  Page structure at a glance:
+    <header class="topbar">   — toolbar strip across the top
+    <main class="main">
+      <section class="canvas-container">  — the SVG drawing area
+      <aside class="panel">              — right-side properties panel
+    </main>
+
+  Script load order matters:
+    1. dxf-parser  — third-party library, must be first
+    2. parser.js   — uses dxf-parser, defines parseDXFFile()
+    3. render.js   — defines renderKeyboard(), selectedIds, etc.
+    4. app.js      — uses everything above; must be last
+-->
 <html lang="en">
 <head>
+  <!-- UTF-8 encoding so special characters in key labels render correctly -->
   <meta charset="UTF-8" />
+
   <title>Ergo Keyboard Layout Maker</title>
+
+  <!--
+    viewport meta tag: makes the page scale correctly on mobile/tablet.
+    width=device-width  — don't zoom out to fit a "desktop" layout
+    initial-scale=1.0   — start at 100% zoom
+  -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- All CSS lives in style.css — loaded here so styles apply before content renders -->
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
+<!--
+  ══════════════════════════════════════════════════════════
+  TOPBAR
+  The horizontal strip at the very top of the page.
+  Contains the app title, file import button, and all toolbar
+  controls. Uses flexbox (see .topbar in style.css).
+  ══════════════════════════════════════════════════════════
+-->
 <header class="topbar">
   <h1>Keyboard Layout Maker</h1>
 
+  <!--
+    FILE IMPORT
+    -----------
+    We use a <label> wrapping a hidden <input type="file"> instead
+    of a plain button. Clicking the <label> triggers the file picker
+    on the hidden input. This gives us a styled button appearance
+    while still using the native file chooser dialog.
+
+    The actual input is hidden via CSS (.file-upload input { display: none }).
+    app.js listens for the "change" event on #fileInput.
+
+    accept=".dxf,.yaml,.yml" — restricts the file picker to these types
+    (the browser shows other files greyed out).
+    Note: only .dxf is actually processed; .yaml/.yml are listed for
+    future expansion but not yet implemented.
+  -->
   <div class="file-upload">
     <label class="file-btn" title="Import DXF file">
       Import DXF
@@ -18,76 +74,249 @@
     </label>
   </div>
 
+  <!--
+    TOOLBAR
+    -------
+    A row of controls. Uses flexbox with gap and flex-wrap so items
+    reflow to a second row on narrow windows instead of overflowing.
+    .toolbar-sep is a thin vertical divider line used to visually
+    group related controls (layer controls | save/load | export).
+  -->
   <div class="toolbar">
+
+    <!--
+      LAYER SELECT DROPDOWN
+      Shows all layer names. Starts with just "Base Layer".
+      When the user adds layers, app.js calls rebuildLayerSelect()
+      which repopulates this <select> with the current layers array.
+      The "change" event is handled in app.js to switch currentLayer.
+    -->
     <select id="layerSelect">
       <option value="base">Base Layer</option>
     </select>
 
+    <!--
+      ADD LAYER BUTTON
+      Clicking this prompts for a layer name, creates blank layer data
+      for every key, and re-renders. Handled in app.js.
+    -->
     <button id="addLayerBtn">Add Layer</button>
 
+    <!-- Visual separator between layer controls and save/load controls -->
     <div class="toolbar-sep"></div>
 
-    <button id="saveLayoutBtn" title="Save layout as JSON">Save</button>
-    <button id="loadLayoutBtn" title="Load a saved layout JSON">Load</button>
+    <!--
+      SAVE / LOAD BUTTONS
+      Save: serialises all key data to a .json file and downloads it.
+      Load: clicks the hidden #loadLayoutInput file picker below.
+      Both handled in app.js.
+    -->
+    <button id="saveLayoutBtn" title="Save layout as JSON">💾 Save</button>
+    <button id="loadLayoutBtn" title="Load a saved layout JSON">📂 Load</button>
+
+    <!--
+      Hidden file input for loading a saved .json layout.
+      #loadLayoutBtn programmatically calls .click() on this element
+      to open the file picker without showing the raw <input>.
+      Only accepts .json to prevent confusion with DXF files.
+      Handled in app.js (loadLayoutInput "change" event).
+    -->
     <input type="file" id="loadLayoutInput" accept=".json" style="display:none" />
 
+    <!-- Visual separator between save/load and export -->
     <div class="toolbar-sep"></div>
 
+    <!--
+      EXPORT PNG BUTTON
+      Converts the SVG canvas to a PNG and downloads it.
+      Handled by exportPNG() in app.js.
+    -->
     <button id="exportPngBtn">Export PNG</button>
+
   </div>
 </header>
 
+
+<!--
+  ══════════════════════════════════════════════════════════
+  MAIN CONTENT AREA
+  Fills all remaining vertical space below the topbar.
+  Uses flexbox: canvas on the left (flex: 1, fills space),
+  panel on the right (fixed 260px width).
+  ══════════════════════════════════════════════════════════
+-->
 <main class="main">
 
-  <!-- Canvas Area -->
+  <!--
+    ════════════════════════════════════════════════════════
+    CANVAS AREA
+    The drawing surface. Contains a hint bar and the SVG.
+    ════════════════════════════════════════════════════════
+  -->
   <section class="canvas-container">
+
+    <!--
+      Hint text above the canvas reminding the user of controls.
+      pointer-events: none in CSS means it doesn't block clicks
+      from reaching the SVG canvas underneath it.
+      <kbd> tags style keys like keyboard key caps.
+    -->
     <div class="canvas-hint">
       Click to select · <kbd>Shift</kbd>+click or drag to multi-select · Double-click to edit label · <kbd>Esc</kbd> to deselect
     </div>
+
+    <!--
+      THE SVG CANVAS
+      This is where the keyboard is drawn by render.js.
+      It starts empty — render.js fills it with <g>, <rect>,
+      <text>, and <foreignObject> elements at runtime.
+
+      Width/height are set large (2000×1200px) in CSS so there's
+      plenty of room for even big keyboards. The user can pan/zoom
+      to navigate. The canvas-container has overflow:auto so
+      scrollbars appear if the SVG is bigger than the viewport.
+    -->
     <svg id="keyboardCanvas"></svg>
+
   </section>
 
-  <!-- Right Panel -->
+
+  <!--
+    ════════════════════════════════════════════════════════
+    RIGHT PANEL — KEY PROPERTIES
+    Fixed-width sidebar for editing selected key properties.
+    All inputs here are read/written by app.js.
+    ════════════════════════════════════════════════════════
+  -->
   <aside class="panel">
+
+    <!--
+      Panel header row: title on the left, selection badge on the right.
+      The badge is updated by render.js's updateSelectionPanel()
+      function whenever the selection changes.
+
+      Badge states (CSS classes swapped by JS):
+        badge-none  — "No selection"   (grey, nothing selected)
+        badge-one   — "1 key selected" (blue, single select)
+        badge-multi — "N keys selected" (green, multi-select)
+    -->
     <div class="panel-header">
       <h2>Key Properties</h2>
       <span id="selectionBadge" class="badge badge-none">No selection</span>
     </div>
 
-    <!-- Key label — hidden when multiple keys selected idk -->
+    <!--
+      KEY LABEL INPUT
+      Wrapped in a <label id="keyTextLabel"> so we can hide the
+      entire label+input pair with a single display:none when
+      multiple keys are selected (typing the same label onto
+      many keys at once doesn't make sense).
+
+      app.js listens for "input" events here and live-updates
+      the canvas as the user types, without needing Apply.
+      app.js also writes to this field when a key is selected.
+    -->
     <label id="keyTextLabel">
       Key Label
       <input type="text" id="keyText" placeholder="A" />
     </label>
 
+    <!--
+      BACKGROUND COLOUR PICKER
+      type="color" renders as a native colour swatch button.
+      Clicking it opens the OS colour picker dialog.
+      value="#ffffff" sets the initial colour to white.
+      app.js reads this value when Apply is clicked.
+      When multiple keys are selected and they have different
+      colours, app.js sets a title tooltip explaining this.
+    -->
     <label>
       Background Color
       <input type="color" id="keyColor" value="#ffffff" />
     </label>
 
+    <!--
+      TEXT COLOUR PICKER
+      Same as above but controls the colour of the key label text.
+      Defaults to black (#000000).
+    -->
     <label>
       Text Color
       <input type="color" id="keyTextColor" value="#000000" />
     </label>
 
+    <!--
+      FONT SIZE INPUT
+      Plain text input (not number) so we can show "mixed" as
+      placeholder text when selected keys have different sizes.
+      app.js uses parseInt() to convert the string to a number.
+      If the field is empty or "mixed", parseInt returns NaN
+      and the font size is left unchanged.
+    -->
     <label>
       Font Size
       <input type="text" id="fontSize" placeholder="18" />
     </label>
 
+    <!--
+      APPLY BUTTON
+      Commits background colour, text colour, and font size to all
+      selected keys. Also commits the label text if only one key
+      is selected. Handled by the "applyChanges" listener in app.js.
+    -->
     <button id="applyChanges">Apply to Selected</button>
 
+    <!--
+      Horizontal rule: a thin dividing line between the key
+      editing controls above and the view controls below.
+      Styled in CSS to remove its default border and use our
+      --border colour instead.
+    -->
     <hr />
 
+    <!--
+      VIEW SECTION HEADING
+      Uses .panel h3 styles: small, uppercase, muted — looks like
+      a section label rather than a heading.
+    -->
     <h3>View</h3>
+
+    <!--
+      RESET VIEW BUTTON
+      Snaps pan and zoom back to the default (centred, 100% zoom).
+      Handled in app.js: sets zoom=1, panX=0, panY=0,
+      then calls updateViewport().
+    -->
     <button id="resetView">Reset View</button>
+
   </aside>
 
 </main>
 
+
+<!--
+  ══════════════════════════════════════════════════════════
+  SCRIPTS
+  Loaded at the bottom of <body> (not in <head>) so the DOM
+  is fully built before the scripts run — otherwise
+  getElementById() calls at the top level of each script
+  would return null.
+
+  Order is critical:
+    1. dxf-parser.js — third-party library from CDN.
+                       Exposes window.DxfParser which parser.js uses.
+    2. parser.js     — defines parseDXFFile(). Needs dxf-parser.
+    3. render.js     — defines renderKeyboard(), selectedIds, etc.
+                       Needs nothing, but app.js calls into it.
+    4. app.js        — the main controller. Calls functions and reads
+                       variables from all the above scripts, so it
+                       must be last.
+  ══════════════════════════════════════════════════════════
+-->
 <script src="https://unpkg.com/dxf-parser/dist/dxf-parser.js"></script>
 <script src="parser.js"></script>
 <script src="render.js"></script>
 <script src="app.js"></script>
+
 </body>
 </html>

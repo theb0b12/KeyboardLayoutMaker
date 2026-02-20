@@ -1,238 +1,418 @@
+/*
+  style.css
+  =========
+  All visual styling for the Keyboard Layout Maker.
+
+  Structure mirrors the HTML:
+    1. CSS custom properties (variables)
+    2. Global reset
+    3. Body / page layout
+    4. Topbar
+    5. Canvas area
+    6. Right panel
+    7. Utility / state classes
+*/
+
+
+/* ============================================================
+   CSS CUSTOM PROPERTIES (variables)
+   Defined on :root so they're available everywhere in the file.
+   Change these to retheme the whole app at once.
+   ============================================================ */
 :root {
-  --bg: #0f1115;
-  --panel: #171a21;
-  --accent: #4c8bf5;
-  --text: #e6e8ee;
-  --border: #2a2f3a;
+  --bg:     #0f1115;  /* darkest background — used for the page body */
+  --panel:  #171a21;  /* slightly lighter — used for topbar and right panel */
+  --accent: #4c8bf5;  /* blue — used for buttons, highlights, active layer */
+  --text:   #e6e8ee;  /* near-white — default text colour */
+  --border: #2a2f3a;  /* subtle dark line — used for all dividers and input borders */
 }
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
 
+/* ============================================================
+   GLOBAL RESET
+   box-sizing: border-box makes width/height include padding and
+   border, not add to them. This is almost always what you want
+   and prevents many layout calculation headaches.
+   margin/padding 0 removes browser default spacing on all elements.
+   ============================================================ */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+
+/* ============================================================
+   BODY / PAGE LAYOUT
+   The page is a vertical flex column:
+     [topbar]        ← fixed height
+     [main content]  ← flex: 1, fills all remaining space
+   height: 100vh makes the body fill the full browser window height
+   so the layout never needs to scroll vertically.
+   ============================================================ */
 body {
-  background: var(--bg);
-  color: var(--text);
+  background:  var(--bg);
+  color:       var(--text);
+  /* System font stack: picks the OS's native UI font for a clean look */
   font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
+  height:      100vh;
+  display:     flex;
+  flex-direction: column; /* stack topbar above main */
 }
 
-/* ── Top bar ── */
 
+/* ============================================================
+   TOPBAR
+   The horizontal strip across the top of the page.
+   Uses flexbox so the title, file button, and toolbar sit
+   in a row and align vertically centred.
+   flex-wrap: wrap lets items reflow to a second row on
+   narrow windows rather than overflowing.
+   ============================================================ */
 .topbar {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 20px;
+  display:       flex;
+  align-items:   center;   /* vertically centre all children */
+  gap:           12px;     /* space between each child */
+  padding:       10px 20px;
   border-bottom: 1px solid var(--border);
-  background: var(--panel);
-  flex-wrap: wrap;
+  background:    var(--panel);
+  flex-wrap:     wrap;     /* reflow on narrow screens */
 }
 
+/* The app title. margin-right: auto is the key trick:
+   it pushes everything to its right (the toolbar buttons) to
+   the far right edge of the topbar. */
 .topbar h1 {
-  font-size: 17px;
+  font-size:    17px;
   margin-right: auto;
-  white-space: nowrap;
+  white-space:  nowrap; /* don't let the title line-wrap */
 }
 
-.file-upload input[type="file"] { display: none; }
 
+/* ============================================================
+   FILE IMPORT BUTTON
+   We hide the native <input type="file"> and use a styled
+   <label> instead, so the button looks like the rest of the UI.
+   Clicking the <label> still opens the OS file picker because
+   the input is inside it (they're associated).
+   ============================================================ */
+
+/* Hide the raw file input — the label handles the click */
+.file-upload input[type="file"] {
+  display: none;
+}
+
+/* Styled as a button — matches the toolbar button look */
 .file-btn {
-  background: #232834;
-  border: 1px solid var(--border);
-  color: var(--text);
-  padding: 6px 12px;
+  background:    #232834;
+  border:        1px solid var(--border);
+  color:         var(--text);
+  padding:       6px 12px;
   border-radius: 6px;
-  cursor: pointer;
-  font-size: 13px;
-  white-space: nowrap;
+  cursor:        pointer; /* show hand cursor to indicate it's clickable */
+  font-size:     13px;
+  white-space:   nowrap;
 }
 
-.file-btn:hover { background: #2d3347; }
+.file-btn:hover {
+  background: #2d3347; /* slightly lighter on hover — subtle feedback */
+}
 
+
+/* ============================================================
+   TOOLBAR (buttons and select in the topbar)
+   ============================================================ */
 .toolbar {
-  display: flex;
+  display:     flex;
   align-items: center;
-  gap: 6px;
-  flex-wrap: wrap;
+  gap:         6px;
+  flex-wrap:   wrap;
 }
 
+/*
+  Thin vertical line used as a visual separator between groups
+  of toolbar controls (e.g. between layer buttons and save/load).
+  It's a div with no content, styled purely as a 1px line.
+*/
 .toolbar-sep {
-  width: 1px;
-  height: 22px;
+  width:      1px;
+  height:     22px;
   background: var(--border);
-  margin: 0 4px;
+  margin:     0 4px; /* a little breathing room on each side */
 }
 
+/* Shared styles for all toolbar buttons and the layer select dropdown */
 .toolbar button,
 .toolbar select {
-  background: #232834;
-  border: 1px solid var(--border);
-  color: var(--text);
-  padding: 6px 10px;
+  background:    #232834;
+  border:        1px solid var(--border);
+  color:         var(--text);
+  padding:       6px 10px;
   border-radius: 6px;
-  cursor: pointer;
-  font-size: 13px;
-  white-space: nowrap;
+  cursor:        pointer;
+  font-size:     13px;
+  white-space:   nowrap; /* prevent button text from wrapping */
 }
 
-.toolbar button:hover { background: var(--accent); }
+/* Toolbar buttons turn accent blue on hover */
+.toolbar button:hover {
+  background: var(--accent);
+}
 
-/* ── Main layout ── */
 
+/* ============================================================
+   MAIN CONTENT AREA
+   A horizontal flex row containing the canvas (left) and panel (right).
+   flex: 1 makes it fill all remaining height below the topbar.
+   overflow: hidden prevents double scrollbars — each child manages
+   its own scrolling independently.
+   ============================================================ */
 .main {
-  display: flex;
-  flex: 1;
-  overflow: hidden;
+  display:  flex;
+  flex:     1;         /* take up all space below the topbar */
+  overflow: hidden;    /* children handle their own overflow */
 }
 
-/* ── Canvas ── */
 
+/* ============================================================
+   CANVAS CONTAINER
+   Wraps the hint text and the SVG drawing area.
+   flex: 1 makes it fill all horizontal space left of the panel.
+   overflow: auto adds scrollbars if the SVG (2000×1200px) is
+   bigger than the container — this lets the user scroll to see
+   parts of a large layout without zooming out.
+   ============================================================ */
 .canvas-container {
-  flex: 1;
-  background: #0b0d12;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-  overflow: auto;
-  padding-top: 10px;
-  gap: 8px;
-  overflow: hidden;
+  flex:            1;
+  background:      #0b0d12;       /* darkest shade — makes the SVG stand out */
+  display:         flex;
+  flex-direction:  column;        /* stack hint text above SVG */
+  align-items:     center;        /* centre SVG horizontally */
+  justify-content: flex-start;    /* pin content to the top */
+  overflow:        auto;          /* scrollbars when SVG overflows */
+  padding-top:     10px;
+  gap:             8px;           /* space between hint and SVG */
 }
 
+/*
+  The small instruction line above the canvas.
+  pointer-events: none means mouse events pass straight through it
+  to the SVG canvas below — you can click "through" the hint text.
+  user-select: none stops the hint from being accidentally selected
+  when the user drags to rubber-band select.
+*/
 .canvas-hint {
-  font-size: 11px;
-  color: #44506a;
+  font-size:      11px;
+  color:          #44506a;        /* muted so it doesn't distract */
   letter-spacing: 0.03em;
-  user-select: none;
+  user-select:    none;
   pointer-events: none;
 }
 
+/*
+  <kbd> inside the hint: styled to look like a physical keyboard key.
+  Matches the conventional way to render key names in documentation.
+*/
 .canvas-hint kbd {
-  background: #1e2330;
-  border: 1px solid #2a3347;
+  background:    #1e2330;
+  border:        1px solid #2a3347;
   border-radius: 3px;
-  padding: 0 4px;
-  font-size: 10px;
-  font-family: inherit;
-  color: #7a8aaa;
+  padding:       0 4px;
+  font-size:     10px;
+  font-family:   inherit; /* match the surrounding hint text font */
+  color:         #7a8aaa;
 }
 
+/*
+  THE SVG CANVAS ELEMENT
+  Large fixed dimensions give plenty of drawing room for even
+  large keyboards. The user navigates using pan (drag) and zoom (scroll).
+  The canvas-container's overflow:auto handles the case where the SVG
+  is too big to fit on screen.
+*/
 #keyboardCanvas {
-  width: 2000px;
-  height: 1200px;
-  background: #12151c;
-  border: 1px solid var(--border);
+  width:      2000px;
+  height:     1200px;
+  background: #12151c;            /* slightly lighter than the container */
+  border:     1px solid var(--border);
 }
 
-/* ── Right panel ── */
 
+/* ============================================================
+   RIGHT PANEL
+   Fixed-width sidebar for editing selected key properties.
+   flex-direction: column stacks all the label/input pairs vertically.
+   gap: 12px adds consistent spacing between each field.
+   overflow-y: auto adds a scrollbar if there are ever too many
+   fields to fit — keeps the panel usable on small screens.
+   ============================================================ */
 .panel {
-  width: 260px;
-  background: var(--panel);
-  border-left: 1px solid var(--border);
-  padding: 16px;
-  display: flex;
+  width:          260px;
+  background:     var(--panel);
+  border-left:    1px solid var(--border);
+  padding:        16px;
+  display:        flex;
   flex-direction: column;
-  gap: 12px;
-  overflow-y: auto;
+  gap:            12px;
+  overflow-y:     auto;
 }
 
+/*
+  The header row inside the panel: "Key Properties" title on the
+  left, selection badge on the right.
+  justify-content: space-between pushes them to opposite ends.
+*/
 .panel-header {
-  display: flex;
-  align-items: center;
+  display:         flex;
+  align-items:     center;
   justify-content: space-between;
-  gap: 8px;
+  gap:             8px;
 }
 
 .panel h2 {
-  font-size: 15px;
+  font-size:   15px;
   font-weight: 600;
 }
 
+/*
+  Section sub-heading (e.g. "View").
+  Small, uppercase, and muted so it reads as a label rather than
+  a real heading — doesn't compete visually with the field labels.
+*/
 .panel h3 {
-  font-size: 11px;
-  color: #5a6880;
+  font-size:      11px;
+  color:          #5a6880;
   text-transform: uppercase;
   letter-spacing: 0.07em;
 }
 
-/* Selection badge */
 
+/* ============================================================
+   SELECTION BADGE
+   The small pill in the panel header showing how many keys
+   are selected. render.js swaps CSS classes to change its
+   appearance based on the selection state.
+   ============================================================ */
 .badge {
-  font-size: 10px;
-  font-weight: 600;
-  padding: 2px 8px;
-  border-radius: 20px;
-  white-space: nowrap;
+  font-size:      10px;
+  font-weight:    600;
+  padding:        2px 8px;
+  border-radius:  20px;      /* fully rounded pill shape */
+  white-space:    nowrap;    /* never let the text wrap */
   letter-spacing: 0.02em;
 }
 
+/* State: nothing selected — dark and muted, barely visible */
 .badge-none {
   background: #1e2330;
-  color: #44506a;
+  color:      #44506a;
 }
 
+/* State: one key selected — blue tint with blue border */
 .badge-one {
   background: rgba(76, 139, 245, 0.15);
-  color: #4c8bf5;
-  border: 1px solid rgba(76, 139, 245, 0.3);
+  color:      #4c8bf5;
+  border:     1px solid rgba(76, 139, 245, 0.3);
 }
 
+/* State: multiple keys selected — green tint to signal "bulk mode" */
 .badge-multi {
   background: rgba(76, 245, 180, 0.12);
-  color: #3dd8a0;
-  border: 1px solid rgba(76, 245, 180, 0.25);
+  color:      #3dd8a0;
+  border:     1px solid rgba(76, 245, 180, 0.25);
 }
 
+
+/* ============================================================
+   PANEL FORM FIELDS
+   Each field is a <label> wrapping a text/color <input>.
+   display: flex + flex-direction: column stacks the label text
+   above the input, so they don't sit on the same line.
+   ============================================================ */
 .panel label {
-  display: flex;
+  display:        flex;
   flex-direction: column;
-  font-size: 12px;
-  color: #8892a4;
-  gap: 5px;
+  font-size:      12px;
+  color:          #8892a4;  /* muted label text — lighter than input values */
+  gap:            5px;      /* space between label text and the input */
 }
 
+/* Text and number inputs: dark background to match the panel theme */
 .panel input[type="text"],
 .panel input[type="number"] {
-  background: #232834;
-  border: 1px solid var(--border);
-  color: var(--text);
-  padding: 6px 8px;
+  background:    #232834;
+  border:        1px solid var(--border);
+  color:         var(--text);
+  padding:       6px 8px;
   border-radius: 6px;
-  font-size: 13px;
+  font-size:     13px;
 }
 
+/*
+  Colour picker inputs need special treatment.
+  The default <input type="color"> looks very different across browsers.
+  Setting explicit height/width and background makes it more consistent.
+  padding: 2px gives a small gap between the outer box and the colour swatch.
+  width: 100% makes it span the full panel width like the text inputs.
+*/
 .panel input[type="color"] {
-  background: #232834;
-  border: 1px solid var(--border);
-  padding: 2px;
+  background:    #232834;
+  border:        1px solid var(--border);
+  padding:       2px;
   border-radius: 6px;
-  height: 32px;
-  width: 100%;
-  cursor: pointer;
+  height:        32px;
+  width:         100%;
+  cursor:        pointer;
 }
 
+/* Panel buttons (Apply, Reset View) — solid accent blue */
 .panel button {
-  background: var(--accent);
-  border: none;
-  padding: 8px;
+  background:    var(--accent);
+  border:        none;          /* no border — the blue fill is enough */
+  padding:       8px;
   border-radius: 6px;
-  cursor: pointer;
-  color: #fff;
-  font-size: 13px;
-  font-weight: 500;
+  cursor:        pointer;
+  color:         #fff;
+  font-size:     13px;
+  font-weight:   500;
 }
 
-.panel button:hover { filter: brightness(1.12); }
+/*
+  brightness() filter on hover slightly lightens the button.
+  Using a filter instead of a different background colour means
+  this works for any background colour without needing a second
+  variable — useful if you change --accent later.
+*/
+.panel button:hover {
+  filter: brightness(1.12);
+}
 
+
+/* ============================================================
+   HORIZONTAL RULE
+   The <hr> divider inside the panel between key editing controls
+   and view controls. Browser default <hr> has an ugly 3D inset
+   border — we override it with a plain 1px line in our border colour.
+   ============================================================ */
 hr {
-  border: none;
+  border:     none;
   border-top: 1px solid var(--border);
 }
 
-/* Inactive layers dimmed in editor only, not in export */
+
+/* ============================================================
+   INACTIVE LAYER DIMMING
+   Applied by render.js to key groups that belong to layers other
+   than the currently active one. Dimming helps the user focus on
+   the layer they're editing.
+
+   IMPORTANT: Before PNG export, app.js temporarily removes this
+   class from all elements so the exported image shows all layers
+   at full opacity. After serialising the SVG it adds the class back.
+
+   We use a CSS class (not an inline style) precisely so that the
+   export code can easily toggle it on/off without touching inline styles.
+   ============================================================ */
 .inactive-layer {
   opacity: 0.45;
 }
