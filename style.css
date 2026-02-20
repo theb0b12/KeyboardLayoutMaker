@@ -1,0 +1,238 @@
+:root {
+  --bg: #0f1115;
+  --panel: #171a21;
+  --accent: #4c8bf5;
+  --text: #e6e8ee;
+  --border: #2a2f3a;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Top bar ── */
+
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 20px;
+  border-bottom: 1px solid var(--border);
+  background: var(--panel);
+  flex-wrap: wrap;
+}
+
+.topbar h1 {
+  font-size: 17px;
+  margin-right: auto;
+  white-space: nowrap;
+}
+
+.file-upload input[type="file"] { display: none; }
+
+.file-btn {
+  background: #232834;
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.file-btn:hover { background: #2d3347; }
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.toolbar-sep {
+  width: 1px;
+  height: 22px;
+  background: var(--border);
+  margin: 0 4px;
+}
+
+.toolbar button,
+.toolbar select {
+  background: #232834;
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.toolbar button:hover { background: var(--accent); }
+
+/* ── Main layout ── */
+
+.main {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ── Canvas ── */
+
+.canvas-container {
+  flex: 1;
+  background: #0b0d12;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  overflow: auto;
+  padding-top: 10px;
+  gap: 8px;
+  overflow: hidden;
+}
+
+.canvas-hint {
+  font-size: 11px;
+  color: #44506a;
+  letter-spacing: 0.03em;
+  user-select: none;
+  pointer-events: none;
+}
+
+.canvas-hint kbd {
+  background: #1e2330;
+  border: 1px solid #2a3347;
+  border-radius: 3px;
+  padding: 0 4px;
+  font-size: 10px;
+  font-family: inherit;
+  color: #7a8aaa;
+}
+
+#keyboardCanvas {
+  width: 2000px;
+  height: 1200px;
+  background: #12151c;
+  border: 1px solid var(--border);
+}
+
+/* ── Right panel ── */
+
+.panel {
+  width: 260px;
+  background: var(--panel);
+  border-left: 1px solid var(--border);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.panel h2 {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.panel h3 {
+  font-size: 11px;
+  color: #5a6880;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+/* Selection badge */
+
+.badge {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 20px;
+  white-space: nowrap;
+  letter-spacing: 0.02em;
+}
+
+.badge-none {
+  background: #1e2330;
+  color: #44506a;
+}
+
+.badge-one {
+  background: rgba(76, 139, 245, 0.15);
+  color: #4c8bf5;
+  border: 1px solid rgba(76, 139, 245, 0.3);
+}
+
+.badge-multi {
+  background: rgba(76, 245, 180, 0.12);
+  color: #3dd8a0;
+  border: 1px solid rgba(76, 245, 180, 0.25);
+}
+
+.panel label {
+  display: flex;
+  flex-direction: column;
+  font-size: 12px;
+  color: #8892a4;
+  gap: 5px;
+}
+
+.panel input[type="text"],
+.panel input[type="number"] {
+  background: #232834;
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 6px 8px;
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+.panel input[type="color"] {
+  background: #232834;
+  border: 1px solid var(--border);
+  padding: 2px;
+  border-radius: 6px;
+  height: 32px;
+  width: 100%;
+  cursor: pointer;
+}
+
+.panel button {
+  background: var(--accent);
+  border: none;
+  padding: 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.panel button:hover { filter: brightness(1.12); }
+
+hr {
+  border: none;
+  border-top: 1px solid var(--border);
+}
+
+/* Inactive layers dimmed in editor only, not in export */
+.inactive-layer {
+  opacity: 0.45;
+}
