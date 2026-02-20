@@ -192,6 +192,7 @@ body {
   overflow:        auto;          /* scrollbars when SVG overflows */
   padding-top:     10px;
   gap:             8px;           /* space between hint and SVG */
+  overflow: hidden;               /* Hide scrollbars */
 }
 
 /*
